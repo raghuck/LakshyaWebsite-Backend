@@ -74,7 +74,7 @@ INSTALLED_APPS = [
     'events.apps.EventsConfig',
     'education.apps.EducationConfig',
     'common.apps.CommonConfig',
-    'auth.apps.AuthConfig',
+    'authentication.apps.AuthenticationConfig',
     
 ]
 
