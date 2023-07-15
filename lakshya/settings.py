@@ -78,6 +78,11 @@ INSTALLED_APPS = [
     
 ]
 
+AUTHENTICATION_BACKENDS = [
+    'django.contrib.auth.backends.ModelBackend',
+]
+
+
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
@@ -190,11 +195,11 @@ CORS_ALLOWED_METHODS = [
 CORS_ALLOW_CREDENTIALS = True
 
 
-# SESSION_COOKIE_HTTPONLY = True
-# SESSION_COOKIE_SECURE = True
-# SESSION_COOKIE_SAMESITE = "None"
-# SESSION_COOKIE_PATH = '/'
-# SESSION_COOKIE_DOMAIN = "None"
+SESSION_COOKIE_HTTPONLY = False
+SESSION_COOKIE_SECURE = True
+SESSION_COOKIE_SAMESITE = "Lax"
+SESSION_COOKIE_PATH = '/'
+SESSION_COOKIE_DOMAIN = ""
 
 
 
