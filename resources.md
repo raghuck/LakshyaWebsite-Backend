@@ -1,0 +1,3 @@
+## Technologies used
+- Django
+- Ngrok
