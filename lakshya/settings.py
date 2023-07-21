@@ -68,7 +68,7 @@ INSTALLED_APPS = [
     'corsheaders',
     "django_extensions",
     #User apps
-    
+    'internships.apps.InternshipsConfig',
     'material.apps.MaterialConfig',
     'jobs.apps.JobsConfig',
     'events.apps.EventsConfig',
