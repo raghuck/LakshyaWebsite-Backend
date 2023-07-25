@@ -11,6 +11,10 @@ django-cors-headers = "==4.0.0"
 pyopenssl = "==23.2.0"
 pillow = "==9.5.0"
 djangorestframework = "*"
+django-urls = "*"
+google-api-python-client = "==2.94.0"
+google-api-core = "==2.11.1"
+google-auth = "==2.22.0"
 
 [dev-packages]
 
