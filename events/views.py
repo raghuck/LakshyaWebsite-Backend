@@ -2,29 +2,29 @@ from django.shortcuts import render
 from django.http import JsonResponse
 from django.shortcuts import get_object_or_404
 from django.views.decorators.csrf import csrf_exempt
-from .models import Event,Mentor,Company
+from .models import *
 from .serializer import EventSerializer
 from rest_framework.decorators import api_view
+import json
 
 
 @api_view(['GET'])
 @csrf_exempt
 def getEventListView(req):
+    eventList = []
     events = Event.objects.all()
-    eventList =[]
-
     for event in events:
         event_data={
             'event_id': event.event_id,
             'title': event.title,
-            'image': event.image,
+            'image': event.image.url,
             'location': event.location,
             'category': event.category,
             'description': event.description,
             'date': event.date.strftime('%Y-%m-%d'),
             'time': event.time.strftime('%H:%M:%S'),
             'link': event.join_link,
-            'mentor': event.mentor,
+            'mentor': event.mentor.name,
             'company': event.company.name,
         }
         eventList.append(event_data)
@@ -38,31 +38,31 @@ def getEventListView(req):
 def eventDetailView(req):
     eventId = req.data.get('event_id')
     event = get_object_or_404(Event,event_id= eventId)
-   
-    event_detail = {
+
+
+    try: 
+        req_object = req.body.decode('utf-8')
+        req = json.loads(req_object)
+        image_url = req_object.image.url
+
+        event_detail = {
         'event_id': event.event_id,
         'title': event.title,
         'description': event.description,
         'date': event.date.strftime('%Y-%m-%d'),
         'time': event.time.strftime('%H:%M:%S'),
         'link': event.join_link,
-        'image': event.image,
+        'image': image_url,
         'category': event.category,
         'location': event.location
-    }
-    return JsonResponse(event_detail)
+        }
+        return JsonResponse(event_detail)
 
 
-'''
-@api_view(['POST'])
-def addEventView(req):
-    serializer = EventSerializer(data = req.data)
-    if serializer.is_valid():
-        serializer.save()
-        return JsonResponse(serializer.data, status=201)
-    else:
-        return JsonResponse(serializer.errors, status=400)
-'''
+    except:
+        print('error')
+   
+  
 
 @api_view(['POST'])
 @csrf_exempt
@@ -77,17 +77,18 @@ def addEventView(req):
     date = event_data.get('date')
     time = event_data.get('time')
     join_link = event_data.get('join_link')
-    image = event_data.get('image')
     mentor_name = event_data.get('mentor')
     company_name = event_data.get('company')
+
+    image =event_data.get('image_path')
 
     #validate data
     if not all([event_id,title,description,category,location,date,time,join_link,image,mentor_name,company_name]):
         return JsonResponse({'error ':'Incomplete data provided.' },status = 400 )
     
     #get or create the mentor and company objects
-    mentor, _ = Mentor.objects.get_or_create(name = mentor_name)
-    company, _ = Company.objects.get_or_create(name = company_name)
+    mentor, _ = mentor.objects.get_or_create(name = mentor_name)
+    company, _ = company.objects.get_or_create(name = company_name)
 
     #creating event object
     event = Event.objects.create(
@@ -111,7 +112,7 @@ def addEventView(req):
     'description': event.description,
     'location': event.location,
     'category': event.category,
-    'image': event.image,
+    'image': event.image.url,
     'date': event.date.strftime('%Y-%m-%d'),
     'time': event.time.strftime('%H:%M:%S'),
     'join_link': event.join_link,
