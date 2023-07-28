@@ -1,16 +1,17 @@
 from django.db import models
+from common.models import mentor,company
 
-class Mentor(models.Model):
-    name = models.CharField(max_length=100)
+# class Mentor(models.Model):
+#     name = models.CharField(max_length=100)
 
-    def __str__(self):
-        return self.name
+#     def __str__(self):
+#         return self.name
 
-class Company(models.Model):
-    name = models.CharField(max_length=100)
+# class Company(models.Model):
+#     name = models.CharField(max_length=100)
 
-    def __str__(self):
-        return self.name
+#     def __str__(self):
+#         return self.name
 
 class Event(models.Model):
     event_id = models.CharField(max_length=50)
@@ -22,8 +23,8 @@ class Event(models.Model):
     join_link = models.URLField()
     category = models.CharField(max_length=100,null=True)
     image = models.ImageField(upload_to='static/events',null=True)
-    mentor = models.ForeignKey(Mentor, on_delete=models.CASCADE)
-    company = models.ForeignKey(Company, on_delete=models.CASCADE)
+    mentor = models.ForeignKey(mentor, on_delete=models.CASCADE)
+    company = models.ForeignKey(company, on_delete=models.CASCADE)
 
     def __str__(self):
         return self.event_id
