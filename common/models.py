@@ -24,7 +24,7 @@ class company(models.Model):
     description = models.CharField(max_length=500)
     logo = models.ImageField(upload_to="static/uploads/logo",null=True)
 
-class skill(models.Model):
+class skills(models.Model):
     id = models.AutoField(primary_key=True)
     name = models.CharField(max_length=20)
     
