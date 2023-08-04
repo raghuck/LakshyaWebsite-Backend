@@ -1,6 +1,6 @@
 from django.contrib.auth.decorators import login_required
 from django.http import JsonResponse
-from common.models import company, skills
+from common.models import company, tag
 from jobs.models import jobs
 from django.shortcuts import get_object_or_404
 from django.views.decorators.csrf import csrf_exempt
@@ -68,10 +68,10 @@ def add_jobs_view(request):
         data = request.POST
         skill_name = data.get('skill_name')
         try:
-            skill_obj = skills.get(name = skill_name)
+            skill_obj = tag.get(name = skill_name)
 
         except:
-            skill_obj = skills(name = skill_name)
+            skill_obj = tag(name = skill_name)
             skill_obj.save()
 
         job_obj = jobs(skill_id = skill_obj.id)

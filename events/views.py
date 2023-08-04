@@ -1,7 +1,8 @@
 from django.http import JsonResponse
-from common import models
+import common.models as commonModels
 from .models import *
 import json
+from lakshya.settings import config
 
 def getEventListView(req):
     eventList = []
@@ -10,15 +11,10 @@ def getEventListView(req):
         event_data={
             'event_id': event.event_id,
             'title': event.title,
-            'image': event.image.url,
+            'image': config["NGROK"]+event.image.url,
             'location': event.location,
             'category': event.category,
-            'description': event.description,
-            'date': event.date.strftime('%Y-%m-%d'),
-            'time': event.time.strftime('%H:%M:%S'),
-            'link': event.join_link,
-            'mentor': event.mentor.name,
-            'company': event.company.name,
+            'date': event.date.strftime('%Y-%m-%d')
         }
         eventList.append(event_data)
     return JsonResponse(eventList, safe= False)
@@ -63,8 +59,8 @@ def addEventView(req):
     image = event_data.get('image_path')
 
     #get or create the mentor and company objects
-    mentor = models.mentor.objects.get(name = mentor_name)
-    company = models.company.objects.get(name = company_name)
+    mentor = commonModels.mentor.objects.get(name = mentor_name)
+    company = commonModels.company.objects.get(name = company_name)
 
     #creating event object
     event = Event(
@@ -90,10 +86,9 @@ def registerEvent(req):
         candidate_email = candidate_data.get('email')
         event_id = candidate_data.get('event_id')
 
-        
         try:
-            candidate = Candidate.objects.get(email=candidate_email)
-        except Candidate.DoesNotExist:
+            candidate = commonModels.Candidate.objects.get(email=candidate_email)
+        except commonModels.Candidate.DoesNotExist:
             return JsonResponse({'message': 'Candidate with this email does not exist.'}, status=400)
 
         try:

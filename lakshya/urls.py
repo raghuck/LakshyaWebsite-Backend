@@ -25,5 +25,5 @@ urlpatterns = [
     path('event/',include('events.urls')),
     # path('material/',include('material.urls')),
     path('auth/',include('authentication.urls')),
-    # path('',include('common.urls')),
+    path('',include('common.urls')),
 ]

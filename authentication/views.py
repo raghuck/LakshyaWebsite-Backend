@@ -50,11 +50,13 @@ def signup_api(request):
         response = JsonResponse({'message': 'FAILURE'}, status=500)
         return response 
 
-@login_required
 def logout_api(request):
+    if not request.user.is_authenticated:
+        response =  JsonResponse({'message': 'REDIRECT'}, status=302)
+        return response
     try:
         logout(request)
-        response =  JsonResponse({'message': 'SUCCESS'}, status=302)
+        response =  JsonResponse({'message': 'SUCCESS'}, status=201)
         return response
     except:
         response = JsonResponse({'message': 'FAILURE'}, status=401)

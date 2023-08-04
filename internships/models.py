@@ -24,7 +24,7 @@
 
 from django.db import models
 from django.core.validators import MinValueValidator
-from common.models import company, skills
+from common.models import company, tag
 
 # class Internships(models.Model):
 #     company1 = models.ForeignKey(company, on_delete=models.CASCADE)
@@ -43,7 +43,7 @@ from common.models import company, skills
 
 
 class internship:
-    skill_id = models.ForeignKey(skills, on_delete=models.CASCADE)
+    skill_id = models.ForeignKey(tag, on_delete=models.CASCADE)
 
 
 # from django.db import models
