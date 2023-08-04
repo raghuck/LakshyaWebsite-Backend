@@ -121,3 +121,36 @@ def addEventView(req):
     }
 
     return JsonResponse(event_data, status = 201)
+
+
+@api_view(['POST'])
+def registerEvent(req):
+    try:
+            
+            candidate_data = json.loads(req.body)
+            candidate_email = candidate_data.get('email')
+            event_id = candidate_data.get('event_id')
+
+            
+            try:
+                candidate = Candidate.objects.get(email=candidate_email)
+            except Candidate.DoesNotExist:
+                return JsonResponse({'message': 'Candidate with this email does not exist.'}, status=400)
+
+            try:
+                event = Event.objects.get(event_id=event_id)
+            except Event.DoesNotExist:
+                return JsonResponse({'message': 'Event with this ID does not exist.'}, status=400)
+
+            
+            rsvp = RSVP(event=event, candidate=candidate)
+
+            
+            rsvp.save()
+
+            return JsonResponse({'message': 'Candidate successfully registered for the event.'}, status=201)
+
+    except Exception as e:
+        return JsonResponse({'message': str(e)}, status=500)
+
+    
