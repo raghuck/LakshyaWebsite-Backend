@@ -1,18 +1,6 @@
 from django.db import models
 from common.models import mentor,company
 
-# class Mentor(models.Model):
-#     name = models.CharField(max_length=100)
-
-#     def __str__(self):
-#         return self.name
-
-# class Company(models.Model):
-#     name = models.CharField(max_length=100)
-
-#     def __str__(self):
-#         return self.name
-
 class Event(models.Model):
     event_id = models.CharField(max_length=50)
     title= models.CharField(max_length=100,null=True)
@@ -42,10 +30,3 @@ class RSVP(models.Model):
 
     def __str__(self):
         return f"{self.candidate.name} - {self.event.event_id}"
-
-
-
-
-# python manage.py makemigrations
-# python manage.py migrate
-

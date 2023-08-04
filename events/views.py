@@ -1,15 +1,8 @@
-from django.shortcuts import render
 from django.http import JsonResponse
-from django.shortcuts import get_object_or_404
-from django.views.decorators.csrf import csrf_exempt
+from common import models
 from .models import *
-from .serializer import EventSerializer
-from rest_framework.decorators import api_view
 import json
 
-
-
-@csrf_exempt
 def getEventListView(req):
     eventList = []
     events = Event.objects.all()
@@ -28,18 +21,12 @@ def getEventListView(req):
             'company': event.company.name,
         }
         eventList.append(event_data)
-
     return JsonResponse(eventList, safe= False)
 
 
-
-@api_view(['POST'])
-@csrf_exempt
 def eventDetailView(req):
     eventId = req.data.get('event_id')
-    event = get_object_or_404(Event,event_id= eventId)
-
-
+    event = Event.objects.get(event_id= eventId)
     try: 
         req_object = req.body.decode('utf-8')
         req = json.loads(req_object)
@@ -57,18 +44,12 @@ def eventDetailView(req):
         'location': event.location
         }
         return JsonResponse(event_detail)
-
-
     except:
         print('error')
    
   
-
-@api_view(['POST'])
-@csrf_exempt
 def addEventView(req):
     event_data = req.data
-
     event_id= event_data.get('event_id')
     title = event_data.get("title")
     description = event_data.get('description')
@@ -79,19 +60,14 @@ def addEventView(req):
     join_link = event_data.get('join_link')
     mentor_name = event_data.get('mentor')
     company_name = event_data.get('company')
+    image = event_data.get('image_path')
 
-    image =event_data.get('image_path')
-
-    #validate data
-    if not all([event_id,title,description,category,location,date,time,join_link,image,mentor_name,company_name]):
-        return JsonResponse({'error ':'Incomplete data provided.' },status = 400 )
-    
     #get or create the mentor and company objects
-    mentor, _ = mentor.objects.get_or_create(name = mentor_name)
-    company, _ = company.objects.get_or_create(name = company_name)
+    mentor = models.mentor.objects.get(name = mentor_name)
+    company = models.company.objects.get(name = company_name)
 
     #creating event object
-    event = Event.objects.create(
+    event = Event(
         event_id=event_id,
         title = title,
         description=description,
@@ -104,51 +80,31 @@ def addEventView(req):
         mentor=mentor,
         company=company,
     )
-
-    # Returning created event
-    event_data = {
-    'event_id': event.event_id,
-    'title': event.title,
-    'description': event.description,
-    'location': event.location,
-    'category': event.category,
-    'image': event.image.url,
-    'date': event.date.strftime('%Y-%m-%d'),
-    'time': event.time.strftime('%H:%M:%S'),
-    'join_link': event.join_link,
-    'mentor': event.mentor.name,
-    'company': event.company.name,
-    }
-
-    return JsonResponse(event_data, status = 201)
+    event.save()
+    return JsonResponse({"message":"SUCCESS"}, status = 201)
 
 
-@api_view(['POST'])
 def registerEvent(req):
     try:
-            
-            candidate_data = json.loads(req.body)
-            candidate_email = candidate_data.get('email')
-            event_id = candidate_data.get('event_id')
+        candidate_data = json.loads(req.body)
+        candidate_email = candidate_data.get('email')
+        event_id = candidate_data.get('event_id')
 
-            
-            try:
-                candidate = Candidate.objects.get(email=candidate_email)
-            except Candidate.DoesNotExist:
-                return JsonResponse({'message': 'Candidate with this email does not exist.'}, status=400)
+        
+        try:
+            candidate = Candidate.objects.get(email=candidate_email)
+        except Candidate.DoesNotExist:
+            return JsonResponse({'message': 'Candidate with this email does not exist.'}, status=400)
 
-            try:
-                event = Event.objects.get(event_id=event_id)
-            except Event.DoesNotExist:
-                return JsonResponse({'message': 'Event with this ID does not exist.'}, status=400)
+        try:
+            event = Event.objects.get(event_id=event_id)
+        except Event.DoesNotExist:
+            return JsonResponse({'message': 'Event with this ID does not exist.'}, status=400)
 
-            
-            rsvp = RSVP(event=event, candidate=candidate)
+        rsvp = RSVP(event=event, candidate=candidate)
+        rsvp.save()
 
-            
-            rsvp.save()
-
-            return JsonResponse({'message': 'Candidate successfully registered for the event.'}, status=201)
+        return JsonResponse({'message': 'Candidate successfully registered for the event.'}, status=201)
 
     except Exception as e:
         return JsonResponse({'message': str(e)}, status=500)
