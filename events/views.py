@@ -8,7 +8,7 @@ from rest_framework.decorators import api_view
 import json
 
 
-@api_view(['GET'])
+
 @csrf_exempt
 def getEventListView(req):
     eventList = []
