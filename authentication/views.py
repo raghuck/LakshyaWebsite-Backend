@@ -62,7 +62,7 @@ def logout_api(request):
         response = JsonResponse({'message': 'FAILURE'}, status=401)
         return response
 
-def third_party_auth(request,email):
+def third_party_auth(request,email,group_name):
     user = User.objects.filter(username=email).first()
     if user:
         # User already exists, log them in
@@ -75,6 +75,9 @@ def third_party_auth(request,email):
             user = User.objects.create_user(username=email, password=None)
             user.set_unusable_password()
             user.save()
+            group = Group.objects.get(name=group_name)
+            # Add the user to the group
+            group.user_set.add(user)
             login(request, user)
             response =  JsonResponse({'message': 'SUCCESS'}, status=201)
             return response
@@ -86,11 +89,12 @@ def third_party_auth(request,email):
 def google_auth(request):
     json_data = json.loads(request.body)
     token = json_data['credential']
+    group_name = json_data["group"]
     try:
         idinfo = id_token.verify_oauth2_token(token, requests.Request(), config['GOOGLE_AUTH_CLIENT'])
         email = idinfo['email']
         print("User Logged in via Google Auth :",email)
-        response = third_party_auth(request,email)
+        response = third_party_auth(request,email,group_name)
         return response
     except ValueError:
         response = JsonResponse({'message': 'FAILURE'}, status=401)

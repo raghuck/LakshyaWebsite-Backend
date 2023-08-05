@@ -1,82 +1,80 @@
-from django.contrib.auth.decorators import login_required
+import json
 from django.http import JsonResponse
-from common.models import company, tag
-from jobs.models import jobs
+from common.models import company, tag,candidate
+from jobs.models import Job,JobSkill,jobApplied
 from django.shortcuts import get_object_or_404
-from django.views.decorators.csrf import csrf_exempt
-from django.db import IntegrityError
+from lakshya.settings import config
 
-# @api_view(['GET'])
-# def job_list_view(request):
-#     jobs = Job.objects.all()
-#     serializer = JobSerializer(jobs, many=True)
-#     return JsonResponse(serializer.data, safe=False)
-
-# @api_view(['POST'])
-# def job_detail_view(request):
-#     job_id = request.data.get('job_id')
-#     job = get_object_or_404(Job, id=job_id)
-#     serializer = JobSerializer(job)
-#     return JsonResponse(serializer.data)
-
-# @api_view(['POST'])
-# @csrf_exempt
-# def add_job_view(request):
-#     serializer = JobSerializer(data=request.data)
-#     if serializer.is_valid():
-#         serializer.save()
-#         return JsonResponse(serializer.data, status=201)
-#     return JsonResponse(serializer.errors, status=400)
 
 def jobs_list_view(request):
-    jobs = jobs.objects.all()
+    jobs = Job.objects.all()
     job_data = []
     for job_obj in jobs:
         job_data.append({
-            'job_id': job_obj.job_id,
-            'description': job_obj.description,
-            'apply_before': job_obj.apply_before,
-            'company': job_obj.company.name
+            'id': job_obj.id,
+            'title':job_obj.title,
+            'location':job_obj.location,
+            'MinExperience':job_obj.MinExperience,
+            "salary" : job_obj.salary,
+            'company': job_obj.company.name,
+            'type' : job_obj.type,
+            "image":config['NGROK']+job_obj.company.logo.url
         })
-    return JsonResponse(job_data, safe=False)
+    return JsonResponse({"jobs":job_data},status=201)
 
-def jobs_detail_view(request, job_id):
-    job_obj = get_object_or_404(jobs, job_id=job_id)
+def jobs_detail_view(req):
+    jobId = json.loads(req.body.decode('utf-8'))['jobId']
+    job_obj = Job.objects.get(id=jobId)
+    skillsRequired = JobSkill.objects.filter(job__id=jobId)
+    skillsList = list(map(lambda x:x.skill.name,skillsRequired))
     job_data = {
-        'job_id': job_obj.job_id,
-        'description': job_obj.description,
-        'apply_before': job_obj.apply_before,
+        'id': job_obj.id,
         'company': job_obj.company.name,
-        'startDate': job_obj.startDate,
-        'duration': job_obj.duration,
-        'stipend': job_obj.stipend,
-        'aboutCompany': job_obj.aboutCompany,
-        'aboutJob': job_obj.aboutJob,
+        'description': job_obj.description,
+        'aboutCompany': job_obj.company.description,
+        'salary': job_obj.salary,
+        'startDate': job_obj.startDate.strftime('%Y-%m-%d'),
         'whoCanApply': job_obj.whoCanApply,
-        'postedTime': job_obj.postedTime,
-        'numberofhiring': job_obj.numberofhiring,
-        'hiringsince': job_obj.hiringsince,
-        'numberofopportunities': job_obj.numberofopportunities,
+        'applyBefore': job_obj.apply_before.strftime('%Y-%m-%d'),
         'perks': job_obj.perks,
-        'numberofopenings': job_obj.numberofopenings,
+        'openings': job_obj.openings,
+        'skills':skillsList
     }
-    return JsonResponse(job_data)
+    return JsonResponse(job_data,status=201)
 
+def apply_job_view(req):
+    if not req.user.is_authenticated:
+        response =  JsonResponse({'message': 'REDIRECT'}, status=302)
+        return response
+    jobId = json.loads(req.body.decode('utf-8'))['jobId']
+    newApplication = jobApplied(
+        job = Job.objects.get(id=jobId),
+        candidate = candidate.objects.get(email=req.user)
+    )
+    newApplication.save()
+    return JsonResponse({"message":"SUCCESS"},status=201)
 
-def add_jobs_view(request):
-    if request.method == 'POST':
-        data = request.POST
-        skill_name = data.get('skill_name')
-        try:
-            skill_obj = tag.get(name = skill_name)
-
-        except:
-            skill_obj = tag(name = skill_name)
-            skill_obj.save()
-
-        job_obj = jobs(skill_id = skill_obj.id)
-        job_obj.save()
-        return JsonResponse({'message': 'Job added successfully'}, status=201)
-    
-    return JsonResponse({'error': 'Invalid request method'}, status=400)
+def add_jobs_view(req):
+    if not req.user.is_authenticated:
+        response =  JsonResponse({'message': 'REDIRECT'}, status=302)
+        return response
+    if req.method == 'POST':
+        data = json.loads(req.body.decode('utf-8'))
+        print(data)
+        newJob = Job(
+            title = data['jobTitle'],
+            location = data['location'],
+            description = data['description'],
+            salary =data['salary'],
+            apply_before = data['applyBefore'],
+            MinExperience = data['MinExperience'],
+            type = data['type'],
+            company = company.objects.get(email=req.user),
+            startDate = data['startdate'],
+            whoCanApply = ", ".join(list(map(lambda x:x['content'],data['whocanApply']))),
+            openings = data['numberOfOpenings'],
+            perks = data['perks'],
+        )
+    newJob.save()
+    return JsonResponse({"message":"SUCCESS"},status=201)
 

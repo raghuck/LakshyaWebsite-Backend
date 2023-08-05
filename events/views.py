@@ -9,7 +9,7 @@ def getEventListView(req):
     events = Event.objects.all()
     for event in events:
         event_data={
-            'event_id': event.event_id,
+            'id': event.event_id,
             'title': event.title,
             'image': config["NGROK"]+event.image.url,
             'location': event.location,
@@ -21,27 +21,48 @@ def getEventListView(req):
 
 
 def eventDetailView(req):
-    eventId = req.data.get('event_id')
+    eventId = json.loads(req.body.decode('utf-8'))['eventId']
     event = Event.objects.get(event_id= eventId)
     try: 
-        req_object = req.body.decode('utf-8')
-        req = json.loads(req_object)
-        image_url = req_object.image.url
-
-        event_detail = {
-        'event_id': event.event_id,
-        'title': event.title,
-        'description': event.description,
-        'date': event.date.strftime('%Y-%m-%d'),
-        'time': event.time.strftime('%H:%M:%S'),
-        'link': event.join_link,
-        'image': image_url,
-        'category': event.category,
-        'location': event.location
+        EventDetails = {
+            "event": {
+                "title": event.title,
+                "details": {
+                    "date": event.date.strftime('%Y-%m-%d'),
+                    "location": event.location,
+                    "category":event.category,
+                    "time": event.time.strftime('%I:%M %p'),
+                    "image": config['NGROK']+event.image.url, 
+                }
+            },
+            "eventInfo": {
+                "title": event.title,
+                "details": {
+                    "date": event.date.strftime('%Y-%m-%d'),
+                    "time": event.time.strftime('%I:%M %p'),
+                    "eventType": event.category,
+                    "officialLinks":event.join_link,
+                    "venue": event.venue,                        
+                },
+            },
+            "speakerDetails": {
+                "name": event.speakerName,
+                "details": {
+                    "description": event.speakerDescription,
+                    "image": config['NGROK']+event.speakerImage.url,
+                },
+            },
+            "organizerDetails": {
+                "name": event.company.name,
+                "details": {
+                    "description": event.company.description,
+                    "image" : config['NGROK']+event.company.logo.url
+                }
+            }
         }
-        return JsonResponse(event_detail)
+        return JsonResponse(EventDetails,status=201)
     except:
-        print('error')
+        return JsonResponse({"message:FAILURE"},status=500)
    
   
 def addEventView(req):
@@ -103,5 +124,3 @@ def registerEvent(req):
 
     except Exception as e:
         return JsonResponse({'message': str(e)}, status=500)
-
-    

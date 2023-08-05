@@ -7,7 +7,7 @@ class candidate(models.Model):
     name = models.CharField(max_length=50)
     gender = models.CharField(max_length=5)
     type = models.CharField(max_length=10) #Student or Woman
-    age = models.ImageField(null=True)
+    age = models.IntegerField(null=True)
     resume = models.FileField(upload_to='static/uploads/resume',null=True)
     pp = models.ImageField(upload_to="static/uploads/pp",null=True)
     
