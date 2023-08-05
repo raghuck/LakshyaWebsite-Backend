@@ -1,7 +1,7 @@
 import json
 from django.http import JsonResponse
 from common.models import company,candidate
-from jobs.models import Job,JobSkill,jobApplied
+from jobs.models import Job,jobApplied
 from lakshya.settings import config
 
 
@@ -24,8 +24,15 @@ def jobs_list_view(request):
 def jobs_detail_view(req):
     jobId = json.loads(req.body.decode('utf-8'))['jobId']
     job_obj = Job.objects.get(id=jobId)
-    skillsRequired = JobSkill.objects.filter(job__id=jobId)
-    skillsList = list(map(lambda x:x.skill.name,skillsRequired))
+    skillsList = list(job_obj.skills.split(","))
+    skillsList = list(map(lambda x:x.strip(),skillsList))
+    
+    applicantList = list(job_obj.whoCanApply.split(","))
+    applicantList = list(map(lambda x:x.strip(),applicantList))
+    
+    perksList = list(job_obj.perks.split(","))
+    perksList = list(map(lambda x:x.strip(),perksList))
+    
     job_data = {
         'id': job_obj.id,
         'company': job_obj.company.name,
@@ -33,9 +40,9 @@ def jobs_detail_view(req):
         'aboutCompany': job_obj.company.description,
         'salary': job_obj.salary,
         'startDate': job_obj.startDate.strftime('%Y-%m-%d'),
-        'whoCanApply': job_obj.whoCanApply,
+        'whoCanApply': applicantList,
         'applyBefore': job_obj.apply_before.strftime('%Y-%m-%d'),
-        'perks': job_obj.perks,
+        'perks': perksList,
         'openings': job_obj.openings,
         'skills':skillsList
     }
@@ -71,6 +78,7 @@ def add_jobs_view(req):
             company = company.objects.get(email=req.user),
             startDate = data['startdate'],
             whoCanApply = ", ".join(list(map(lambda x:x['content'],data['whocanApply']))),
+            skills = ", ".join(list(map(lambda x:x['content'],data['skills']))),
             openings = data['numberOfOpenings'],
             perks = data['perks'],
         )

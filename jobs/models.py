@@ -18,12 +18,7 @@ class Job(models.Model):
     postedDate = models.DateField(default=datetime.date.today())
     openings = models.IntegerField()
     perks = models.CharField(max_length=500)
-
-class JobSkill(models.Model):
-    job = models.ForeignKey(Job, on_delete=models.CASCADE)
-    skill = models.ForeignKey(tag, on_delete=models.CASCADE)
-    class Meta:
-        unique_together = (('job','skill'))
+    skills = models.CharField(max_length=500)
         
 class jobApplied(models.Model):
     job = models.ForeignKey(Job, on_delete=models.CASCADE)
