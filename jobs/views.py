@@ -1,8 +1,7 @@
 import json
 from django.http import JsonResponse
-from common.models import company, tag,candidate
+from common.models import company,candidate
 from jobs.models import Job,JobSkill,jobApplied
-from django.shortcuts import get_object_or_404
 from lakshya.settings import config
 
 
@@ -77,4 +76,3 @@ def add_jobs_view(req):
         )
     newJob.save()
     return JsonResponse({"message":"SUCCESS"},status=201)
-

@@ -99,5 +99,3 @@ def google_auth(request):
     except ValueError:
         response = JsonResponse({'message': 'FAILURE'}, status=401)
         return response
-    
-    
